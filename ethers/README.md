@@ -1,4 +1,4 @@
-# `Ethers.js` with HardHat
+# Ethers.js with HardHat
 
 Using Ethers.js to receive and send the data from smart contract that we created using Hardhat in [previous article](https://guideofdapp.com/posts/code-deploy-using-hardhat/).
 
