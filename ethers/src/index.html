@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hardhat with Frontend</title>
+  </head>
+  <body>
+    <form>
+      <fieldset>
+        <legend>Wallet Details</legend>
+        <ul>
+          <li>Address: <span id="address-value"></span></li>
+          <li>
+            isConnected:
+            <span id="is-connected-value">click to the button</span>
+          </li>
+        </ul>
+        <button type="button" id="connect-button">Connect</button>
+      </fieldset>
+
+      <fieldset>
+        <legend><code>set</code> function</legend>
+        <input type="text" placeholder="Enter a thing to set" id="set-value" />
+        <button type="button" id="set-button">Set it!</button>
+      </fieldset>
+
+      <fieldset>
+        <legend><code>get</code> function</legend>
+        <p id="get-value">click the button to display</p>
+        <button type="button" id="get-button">Click & Get it!</button>
+      </fieldset>
+    </form>
+  </body>
+
+  <script type="module">
+    import { abi } from './web3.json'
+    import { ethers } from 'ethers'
+
+    const setValue = document.getElementById('set-value'),
+      setButton = document.getElementById('set-button'),
+      getValue = document.getElementById('get-value'),
+      getButton = document.getElementById('get-button'),
+      connectButton = document.getElementById('connect-button'),
+      addressValue = document.getElementById('address-value'),
+      isConnectedValue = document.getElementById('is-connected-value')
+
+    let isConnected
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum),
+      signer = provider.getSigner(),
+      contractAddress = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
+      providerContract = new ethers.Contract(contractAddress, abi, provider),
+      signerContract = new ethers.Contract(contractAddress, abi, signer)
+
+    function checkWallet() {
+      if (!isConnected) {
+        alert('Connect to the wallet')
+        return
+      }
+    }
+
+    setButton.addEventListener('click', async () => {
+      checkWallet()
+
+      const { value } = setValue
+      if (isConnected) {
+        try {
+          const transaction = await signerContract.set(value)
+          await transaction.wait()
+          console.log({ transaction })
+        } catch (error) {
+          console.log(error)
+        }
+      }
+    })
+
+    getButton.addEventListener('click', async () => {
+      checkWallet()
+
+      try {
+        const fetchedValue = await providerContract.MyName()
+        console.log(fetchedValue)
+        getValue.innerText = fetchedValue.toString()
+      } catch (error) {
+        console.log(error)
+      }
+    })
+
+    connectButton.addEventListener('click', async () => {
+      try {
+        isConnectedValue.innerText = 'Loading...'
+        await provider.send('eth_requestAccounts', [])
+
+        const address = await signer.getAddress()
+        addressValue.innerText = address
+        isConnectedValue.innerText = 'Connected'
+        isConnected = true
+      } catch (error) {
+        console.log(error)
+        isConnectedValue.innerText = `Error occurred. ${error}`
+        isConnected = false
+      }
+    })
+  </script>
+</html>
